@@ -13,33 +13,43 @@ set -o pipefail
 set -o nounset
 # set -o xtrace
 
+# Set release_channel=plexpass to enable beta releases
+release_channel=
+
+function fail() {
+  echo "FAIL: $@"
+  exit 1
+}
+
 echo 'Checking for a Plex Media Server update...'
 
 if [[ $EUID -ne 0 ]]; then
-  echo 'This script must be run as root. Aborting!'
-  exit 1
+  fail 'This script must be run as root.'
 fi
 
 current_version=$(synopkg version 'Plex Media Server')
 echo "Current version: $current_version"
 
-release_mode=official
-# release_mode=beta
-
-releases_url="https://plex.tv/api/downloads/5.json"
-if [[ "$release_mode" == "beta" ]]; then
+downloads_url="https://plex.tv/api/downloads/5.json"
+if [[ "$release_channel" == plexpass ]]; then
   pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
-  token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$pms_dir/Preferences.xml" || true)
-  if [[ -z "$token" ]]; then
-    echo 'Unable to find PlexOnlineToken. Aborting!'
-    exit 1
+  if [[ ! -d "$pms_dir" ]]; then
+    fail 'Unable to find "Plex Media Server" directory.'
   fi
-  releases_url="$releases_url?channel=plexpass&X-Plex-Token=$token"
+  prefs_file="$pms_dir/Preferences.xml"
+  if [[ ! -e "$prefs_file" ]]; then
+    fail 'Unable to find Plex Media Server Preferences.xml file.'
+  fi
+  token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$prefs_file" || true)
+  if [[ -z "$token" ]]; then
+    fail 'Unable to detect PlexOnlineToken in Preferences.xml.'
+  fi
+  downloads_url="$downloads_url?channel=plexpass&X-Plex-Token=$token"
 fi
 
-releases_json="$(curl -s "$releases_url")"
+downloads_json="$(curl -s "$downloads_url")"
 
-new_version=$(jq -r .nas.Synology.version <<< "$releases_json")
+new_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
 echo "New version: $new_version"
 
 # https://stackoverflow.com/a/4024263
@@ -63,10 +73,9 @@ trap cleanup EXIT
 
 echo 'Downloading new version...'
 machine=$(uname -m)
-installer_url="$(jq -r '.nas.Synology.releases[] | select(.build == "linux-'$machine'").url' <<< "$releases_json")"
+installer_url="$(jq -r '.nas.Synology.releases[] | select(.build == "linux-'$machine'").url' <<< "$downloads_json")"
 if [[ -z "$installer_url" ]]; then
-  echo "Unable to find installer URL for $machine. Aborting!"
-  exit 1
+  fail "Unable to find installer URL for $machine."
 fi
 wget "$installer_url" -P $tmp_dir
 
