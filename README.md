@@ -35,14 +35,14 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 ## References
 
-This work wouldn't have been possible without all the other scripts I had found, such as:
+Adapted from work first published at:
+- https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
+
+Inlcuding other update scripts such as:
 - https://github.com/martinorob/plexupdate
 - https://github.com/nitantsoni/plexupdate
 - https://gist.github.com/seanhamlin/dcde16a164377dca87a798a4c2ea051c
 - https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748/67
-
-And the healthy collaborative discussion in the Plex forums:
-- https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
 
 ## License
 
