@@ -29,13 +29,17 @@ release_mode=official
 releases_url="https://plex.tv/api/downloads/5.json"
 if [[ "$release_mode" == "beta" ]]; then
   pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
-  token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$pms_dir/Preferences.xml")
+  token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$pms_dir/Preferences.xml" || true)
+  if [[ -z "$token" ]]; then
+    echo 'Unable to find PlexOnlineToken. Aborting!'
+    exit 1
+  fi
   releases_url="$releases_url?channel=plexpass&X-Plex-Token=$token"
 fi
 
 releases_json="$(curl -s "$releases_url")"
 
-new_version=$(echo "$releases_json" | jq -r .nas.Synology.version)
+new_version=$(jq -r .nas.Synology.version <<< "$releases_json")
 echo "New version: $new_version"
 
 # https://stackoverflow.com/a/4024263
@@ -58,7 +62,12 @@ function cleanup() {
 trap cleanup EXIT
 
 echo 'Downloading new version...'
-installer_url="$(echo "$releases_json" | jq -r '.nas.Synology.releases[] | select(.build == "linux-'$(uname -m)'").url')"
+machine=$(uname -m)
+installer_url="$(jq -r '.nas.Synology.releases[] | select(.build == "linux-'$machine'").url' <<< "$releases_json")"
+if [[ -z "$installer_url" ]]; then
+  echo "Unable to find installer URL for $machine. Aborting!"
+  exit 1
+fi
 wget "$installer_url" -P $tmp_dir
 
 echo 'Installing new version...'
