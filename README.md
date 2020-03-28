@@ -23,7 +23,7 @@ you@yournas:~$ chmod a+x update-plex.sh
 
 Then, create a Scheduled Task with a User-defined script in the Synology DSM Control Panel:
 - Ensure the User is `root`
-- Ensure the Run command is `/path/to/plex-update.sh`
+- Ensure the Run command is `/path/to/update-plex.sh`
 
 ## Notes
 
