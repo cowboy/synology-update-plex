@@ -27,11 +27,11 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 ## Notes
 
+- Be careful when SSHing into your NAS. I'm not responsible if you break anything!
 - This was tested on a Synology DS918+ NAS. It should work with other Synology NAS models. If it doesn't, please file an issue or PR.
-- Be careful when SSHing into your NAS. I'm not responsible if you break anything.
-- This assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/
+- This assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
+- You'll probably need to [add Plex as a trusted publisher for package installations](https://support.plex.tv/hc/en-us/articles/205165858).
 - If you have Plex Pass and want to enable beta releases, uncomment the `release_mode=beta` line.
-- You'll probably need to [add Plex’s package signing public key to Synology NAS Package Center](https://support.plex.tv/articles/205165858-how-to-add-plex-s-package-signing-public-key-to-synology-nas-package-center/).
 
 ## References
 
