@@ -16,6 +16,8 @@ set -o pipefail
 set -o nounset
 # set -o xtrace
 
+shopt -s nullglob
+
 # Set release_channel=plexpass to enable beta releases
 release_channel=
 
@@ -26,27 +28,23 @@ function fail() {
 
 echo 'Checking for a Plex Media Server update...'
 
-if [[ $EUID -ne 0 ]]; then
-  fail 'This script must be run as root.'
-fi
+[[ $EUID -ne 0 ]] && fail 'This script must be run as root.'
 
 current_version=$(synopkg version 'Plex Media Server')
 echo "Current version: $current_version"
 
 downloads_url="https://plex.tv/api/downloads/5.json"
+
 if [[ "$release_channel" == plexpass ]]; then
   pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
-  if [[ ! -d "$pms_dir" ]]; then
-    fail 'Unable to find "Plex Media Server" directory.'
-  fi
+  [[ ! -d "$pms_dir" ]] && fail 'Unable to find "Plex Media Server" directory.'
+
   prefs_file="$pms_dir/Preferences.xml"
-  if [[ ! -e "$prefs_file" ]]; then
-    fail 'Unable to find Plex Media Server Preferences.xml file.'
-  fi
+  [[ ! -e "$prefs_file" ]] && fail 'Unable to find Preferences.xml file.'
+
   token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$prefs_file" || true)
-  if [[ -z "$token" ]]; then
-    fail 'Unable to detect PlexOnlineToken in Preferences.xml.'
-  fi
+  [[ -z "$token" ]] && fail 'Unable to find Plex Token.'
+
   downloads_url="$downloads_url?channel=plexpass&X-Plex-Token=$token"
 fi
 
@@ -74,16 +72,26 @@ function cleanup() {
 }
 trap cleanup EXIT
 
-echo 'Downloading new version...'
+echo 'Finding release...'
 machine=$(uname -m)
-installer_url="$(jq -r '.nas.Synology.releases[] | select(.build == "linux-'$machine'").url' <<< "$downloads_json")"
-if [[ -z "$installer_url" ]]; then
-  fail "Unable to find installer URL for $machine."
-fi
-wget "$installer_url" -P $tmp_dir
+release_json="$(jq '.nas.Synology.releases[] | select(.build == "linux-'$machine'")' <<< "$downloads_json")"
+[[ -z "$release_json" ]] && fail "Unable to find $machine release."
 
-echo 'Installing new version...'
-synopkg install $tmp_dir/*.spk
+echo 'Downloading release package...'
+package_url="$(jq -r .url <<< "$release_json")"
+wget "$package_url" -P $tmp_dir
+
+package_file=$(echo $tmp_dir/*.spk)
+[[ ! -e "$package_file" ]] && fail "Unable to download package file from $package_url."
+
+echo 'Verifying checksum...'
+expected_checksum="$(jq -r .checksum <<< "$release_json")"
+actual_checksum=$(sha1sum $package_file | cut -f1 -d' ')
+[[ "$actual_checksum" != "$expected_checksum" ]] && \
+  fail "Checksum mismatch for $(basename $package_file). Expected $expected_checksum, got $actual_checksum."
+
+echo 'Installing package...'
+synopkg install $package_file
 
 echo 'Restarting Plex Media Server...'
 synopkg start 'Plex Media Server'
