@@ -7,6 +7,9 @@
 #
 # Download latest version from
 # https://github.com/cowboy/synology-update-plex
+#
+# Adapted from work first published at
+# https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
 
 set -o errexit
 set -o pipefail
