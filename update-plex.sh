@@ -3,7 +3,7 @@
 # Script to Auto Update Plex Media Server on Synology NAS
 #
 # "Cowboy" Ben Alman
-# Last updated on 3/29/2020
+# Last updated on 2020-03-29
 #
 # Download latest version from
 # https://github.com/cowboy/synology-update-plex
