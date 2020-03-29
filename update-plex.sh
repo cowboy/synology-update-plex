@@ -53,6 +53,8 @@ echo "Current version: $current_version"
 downloads_url="https://plex.tv/api/downloads/5.json"
 
 if [[ "$release_channel" == plexpass ]]; then
+  echo "Using plexpass release channel."
+
   pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
   if [[ ! -d "$pms_dir" ]]; then
     fail 'Unable to find "Plex Media Server" directory.'
