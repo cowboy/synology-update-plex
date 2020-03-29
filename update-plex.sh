@@ -23,9 +23,9 @@ release_channel=
 
 tmp_dir=
 function cleanup() {
-	code=$?
+  code=$?
   if [[ -d "$tmp_dir" ]]; then
-	  echo 'Cleaning up temp files...'
+    echo 'Cleaning up temp files...'
     rm -rf $tmp_dir
   fi
   if [[ $code == 0 ]]; then
@@ -128,7 +128,7 @@ wget "$package_url" -P $tmp_dir
 
 package_file=$(echo $tmp_dir/*.spk)
 if [[ ! -e "$package_file" ]]; then
-	fail "Unable to download package file."
+  fail "Unable to download package file."
 fi
 
 echo 'Verifying checksum...'
