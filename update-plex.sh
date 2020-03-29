@@ -3,7 +3,7 @@
 # Script to Auto Update Plex Media Server on Synology NAS
 #
 # "Cowboy" Ben Alman
-# Last updated on 3/28/20
+# Last updated on 3/29/2020
 #
 # Download latest version from
 # https://github.com/cowboy/synology-update-plex
@@ -18,8 +18,23 @@ set -o nounset
 
 shopt -s nullglob
 
-# Set release_channel=plexpass to enable beta releases
+# Set release_channel=plexpass to enable early access / beta releases
 release_channel=
+
+tmp_dir=
+function cleanup() {
+	code=$?
+  if [[ -d "$tmp_dir" ]]; then
+	  echo 'Cleaning up temp files...'
+    rm -rf $tmp_dir
+  fi
+  if [[ $code == 0 ]]; then
+    echo 'Done!'
+  else
+    echo 'Done, with errors.'
+  fi
+}
+trap cleanup EXIT
 
 function fail() {
   echo "FAIL: $@"
@@ -28,7 +43,9 @@ function fail() {
 
 echo 'Checking for a Plex Media Server update...'
 
-[[ $EUID -ne 0 ]] && fail 'This script must be run as root.'
+if [[ $EUID != 0 ]]; then
+  fail 'This script must be run as root.'
+fi
 
 current_version=$(synopkg version 'Plex Media Server')
 echo "Current version: $current_version"
@@ -37,18 +54,28 @@ downloads_url="https://plex.tv/api/downloads/5.json"
 
 if [[ "$release_channel" == plexpass ]]; then
   pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
-  [[ ! -d "$pms_dir" ]] && fail 'Unable to find "Plex Media Server" directory.'
+  if [[ ! -d "$pms_dir" ]]; then
+    fail 'Unable to find "Plex Media Server" directory.'
+  fi
 
   prefs_file="$pms_dir/Preferences.xml"
-  [[ ! -e "$prefs_file" ]] && fail 'Unable to find Preferences.xml file.'
+  if [[ ! -e "$prefs_file" ]]; then
+    fail 'Unable to find Preferences.xml file.'
+  fi
 
   token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$prefs_file" || true)
-  [[ -z "$token" ]] && fail 'Unable to find Plex Token.'
+  if [[ -z "$token" ]]; then
+    fail 'Unable to find Plex Token.'
+  fi
 
   downloads_url="$downloads_url?channel=plexpass&X-Plex-Token=$token"
 fi
 
+echo 'Downloading version data...'
 downloads_json="$(curl -s "$downloads_url")"
+if [[ -z "$downloads_json" ]]; then
+  fail 'Unable to download version data.'
+fi
 
 new_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
 echo "New version: $new_version"
@@ -59,41 +86,60 @@ function version_lte() {
 }
 
 if version_lte $new_version $current_version; then
-  echo 'Plex is up-to-date, exiting!'
+  echo 'Plex is up-to-date.'
   exit
 fi
 
 echo 'New version available!'
 synonotify PKGHasUpgrade '{"[%HOSTNAME%]": $(hostname), "[%OSNAME%]": "Synology", "[%PKG_HAS_UPDATE%]": "Plex", "[%COMPANY_NAME%]": "Synology"}'
 
-tmp_dir=$(mktemp -d)
-function cleanup() {
-  rm -rf $tmp_dir
-}
-trap cleanup EXIT
-
 echo 'Finding release...'
+hw_version=$(</proc/sys/kernel/syno_hw_version)
 machine=$(uname -m)
-release_json="$(jq '.nas.Synology.releases[] | select(.build == "linux-'$machine'")' <<< "$downloads_json")"
-[[ -z "$release_json" ]] && fail "Unable to find $machine release."
+
+# Comment out the following line to see how the armv7 logic was derived:
+# jq '.nas.Synology.releases[].label | select(contains("ARMv7"))' <<< "$downloads_json"
+if [[ "$machine" =~ armv7 ]]; then
+  declare -A model_machine_map
+  model_machine_map[DS414j]=armv7hf_neon
+  model_machine_map[DS115j]=armv7hf
+  model_machine_map[RS815]=armv7hf
+  model_machine_map[DS216se]=armv7hf
+  if [[ "${model_machine_map[$hw_version]+_}" ]]; then
+    arch=${model_machine_map[$hw_version]}
+  elif [[ "${hw_version//[^0-9]/}" =~ 1[5-8]$ ]]; then
+    arch=armv7hf_neon
+  else
+    arch=armv7hf
+  fi
+else
+  arch=$machine
+fi
+
+release_json="$(jq '.nas.Synology.releases[] | select(.build == "linux-'$arch'")' <<< "$downloads_json")"
+if [[ -z "$release_json" ]]; then
+  fail "Unable to find release for $hw_version/$machine/$arch."
+fi
 
 echo 'Downloading release package...'
 package_url="$(jq -r .url <<< "$release_json")"
+tmp_dir=$(mktemp -d)
 wget "$package_url" -P $tmp_dir
 
 package_file=$(echo $tmp_dir/*.spk)
-[[ ! -e "$package_file" ]] && fail "Unable to download package file from $package_url."
+if [[ ! -e "$package_file" ]]; then
+	fail "Unable to download package file."
+fi
 
 echo 'Verifying checksum...'
 expected_checksum="$(jq -r .checksum <<< "$release_json")"
 actual_checksum=$(sha1sum $package_file | cut -f1 -d' ')
-[[ "$actual_checksum" != "$expected_checksum" ]] && \
+if [[ "$actual_checksum" != "$expected_checksum" ]]; then
   fail "Checksum mismatch for $(basename $package_file). Expected $expected_checksum, got $actual_checksum."
+fi
 
 echo 'Installing package...'
 synopkg install $package_file
 
 echo 'Restarting Plex Media Server...'
 synopkg start 'Plex Media Server'
-
-echo 'Done!'
