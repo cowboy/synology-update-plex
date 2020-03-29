@@ -100,12 +100,13 @@ hw_version=$(</proc/sys/kernel/syno_hw_version)
 machine=$(uname -m)
 
 # The following armv7 logic was derived from:
-# jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7")) | [.build, .label]' <<< "$downloads_json"
+# jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7"))' <<< "$downloads_json"
 #
 # linux-armv7hf
 #   ARMv7 (x13 Series, x14 Series (excluding DS414j), DS115j, RS815, and DS216se)
 # linux-armv7hf_neon
 #   ARMv7 (x15 Series (excluding DS115j and RS815), x16 Series (excluding DS216se), x17 Series, x18 Series, and DS414j)
+
 if [[ "$machine" =~ armv7 ]]; then
   declare -A model_machine_map
   model_machine_map[DS414j]=armv7hf_neon
