@@ -3,7 +3,7 @@
 # Script to Auto Update Plex Media Server on Synology NAS
 #
 # "Cowboy" Ben Alman
-# Last updated on 2020-03-29
+# Last updated on 2020-03-30
 #
 # Download latest version from
 # https://github.com/cowboy/synology-update-plex
@@ -25,7 +25,7 @@ tmp_dir=
 function cleanup() {
   code=$?
   if [[ -d "$tmp_dir" ]]; then
-    echo 'Cleaning up temp files...'
+    echo 'Cleaning up temp files.'
     rm -rf $tmp_dir
   fi
   if [[ $code == 0 ]]; then
@@ -41,14 +41,11 @@ function fail() {
   exit 1
 }
 
-echo 'Checking for a Plex Media Server update...'
+echo 'Checking for a Plex Media Server update.'
 
 if [[ $EUID != 0 ]]; then
   fail 'This script must be run as root.'
 fi
-
-current_version=$(synopkg version 'Plex Media Server')
-echo "Current version: $current_version"
 
 downloads_url="https://plex.tv/api/downloads/5.json"
 
@@ -73,14 +70,17 @@ if [[ "$release_channel" == plexpass ]]; then
   downloads_url="$downloads_url?channel=plexpass&X-Plex-Token=$token"
 fi
 
-echo 'Downloading version data...'
+echo 'Retrieving version data.'
 downloads_json="$(curl -s "$downloads_url")"
 if [[ -z "$downloads_json" ]]; then
-  fail 'Unable to download version data.'
+  fail 'Unable to retrieve version data.'
 fi
 
 new_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
-echo "New version: $new_version"
+echo "NEW VERSION: $new_version"
+
+current_version=$(synopkg version 'Plex Media Server')
+echo "CURRENT VERSION: $current_version"
 
 # https://stackoverflow.com/a/4024263
 function version_lte() {
@@ -95,7 +95,7 @@ fi
 echo 'New version available!'
 synonotify PKGHasUpgrade '{"[%HOSTNAME%]": $(hostname), "[%OSNAME%]": "Synology", "[%PKG_HAS_UPDATE%]": "Plex", "[%COMPANY_NAME%]": "Synology"}'
 
-echo 'Finding release...'
+echo 'Finding release.'
 hw_version=$(</proc/sys/kernel/syno_hw_version)
 machine=$(uname -m)
 
@@ -129,7 +129,7 @@ if [[ -z "$release_json" ]]; then
   fail "Unable to find release for $hw_version/$machine/$arch."
 fi
 
-echo 'Downloading release package...'
+echo 'Downloading release package.'
 package_url="$(jq -r .url <<< "$release_json")"
 tmp_dir=$(mktemp -d)
 wget "$package_url" -P $tmp_dir
@@ -139,15 +139,15 @@ if [[ ! -e "$package_file" ]]; then
   fail "Unable to download package file."
 fi
 
-echo 'Verifying checksum...'
+echo 'Verifying checksum.'
 expected_checksum="$(jq -r .checksum <<< "$release_json")"
 actual_checksum=$(sha1sum $package_file | cut -f1 -d' ')
 if [[ "$actual_checksum" != "$expected_checksum" ]]; then
   fail "Checksum mismatch for $(basename $package_file). Expected $expected_checksum, got $actual_checksum."
 fi
 
-echo 'Installing package...'
+echo 'Installing package.'
 synopkg install $package_file
 
-echo 'Restarting Plex Media Server...'
+echo 'Restarting Plex Media Server.'
 synopkg start 'Plex Media Server'
