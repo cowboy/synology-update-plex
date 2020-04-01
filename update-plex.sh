@@ -24,60 +24,60 @@ release_channel=
 tmp_dir=
 function cleanup() {
   code=$?
+  echo ""
   if [[ -d "$tmp_dir" ]]; then
-    echo 'Cleaning up temp files.'
+    echo 'Cleaning up temp files'
     rm -rf $tmp_dir
   fi
   if [[ $code == 0 ]]; then
     echo 'Done!'
   else
-    echo 'Done, with errors.'
+    echo 'Done, with errors!'
   fi
 }
 trap cleanup EXIT
 
-function fail() {
-  echo "FAIL: $@"
-  exit 1
-}
+function header() { echo -e "\n[ $@ ]"; }
+function fail() { echo "FAIL: $@"; exit 1; }
 
-echo 'Checking for a Plex Media Server update.'
+echo 'Checking for a Plex Media Server update...'
 
 if [[ $EUID != 0 ]]; then
-  fail 'This script must be run as root.'
+  fail 'This script must be run as root'
 fi
 
 downloads_url="https://plex.tv/api/downloads/5.json"
 
 if [[ "$release_channel" == plexpass ]]; then
-  echo "Using plexpass release channel."
+  header "Using plexpass release channel"
 
   pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
   if [[ ! -d "$pms_dir" ]]; then
-    fail 'Unable to find "Plex Media Server" directory.'
+    fail 'Unable to find "Plex Media Server" directory'
   fi
 
   prefs_file="$pms_dir/Preferences.xml"
   if [[ ! -e "$prefs_file" ]]; then
-    fail 'Unable to find Preferences.xml file.'
+    fail 'Unable to find Preferences.xml file'
   fi
 
   token=$(grep -oP 'PlexOnlineToken="\K[^"]+' "$prefs_file" || true)
   if [[ -z "$token" ]]; then
-    fail 'Unable to find Plex Token.'
+    fail 'Unable to find Plex Token'
   fi
 
+  echo "Found Plex Token"
   downloads_url="$downloads_url?channel=plexpass&X-Plex-Token=$token"
 fi
 
-echo 'Retrieving version data.'
+header 'Retrieving version data'
 downloads_json="$(curl -s "$downloads_url")"
 if [[ -z "$downloads_json" ]]; then
-  fail 'Unable to retrieve version data.'
+  fail 'Unable to retrieve version data'
 fi
 
-new_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
-echo "NEW VERSION: $new_version"
+latest_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
+echo "LATEST VERSION: $latest_version"
 
 current_version=$(synopkg version 'Plex Media Server')
 echo "CURRENT VERSION: $current_version"
@@ -87,7 +87,7 @@ function version_lte() {
   [[ "$1" == "$(echo -e "$1\n$2" | sort -V | head -n1)" ]]
 }
 
-if version_lte $new_version $current_version; then
+if version_lte $latest_version $current_version; then
   echo 'Plex is up-to-date.'
   exit
 fi
@@ -95,7 +95,7 @@ fi
 echo 'New version available!'
 synonotify PKGHasUpgrade '{"[%HOSTNAME%]": $(hostname), "[%OSNAME%]": "Synology", "[%PKG_HAS_UPDATE%]": "Plex", "[%COMPANY_NAME%]": "Synology"}'
 
-echo 'Finding release.'
+header 'Finding release'
 hw_version=$(</proc/sys/kernel/syno_hw_version)
 machine=$(uname -m)
 
@@ -126,28 +126,30 @@ fi
 
 release_json="$(jq '.nas.Synology.releases[] | select(.build == "linux-'$arch'")' <<< "$downloads_json")"
 if [[ -z "$release_json" ]]; then
-  fail "Unable to find release for $hw_version/$machine/$arch."
+  fail "Unable to find release for $hw_version/$machine/$arch"
 fi
+echo "$release_json"
 
-echo 'Downloading release package.'
+header 'Downloading release package'
 package_url="$(jq -r .url <<< "$release_json")"
 tmp_dir=$(mktemp -d)
-wget "$package_url" -P $tmp_dir
+wget --no-verbose "$package_url" -P $tmp_dir
 
 package_file=$(echo $tmp_dir/*.spk)
 if [[ ! -e "$package_file" ]]; then
-  fail "Unable to download package file."
+  fail "Unable to download package file"
 fi
 
-echo 'Verifying checksum.'
+header 'Verifying checksum'
 expected_checksum="$(jq -r .checksum <<< "$release_json")"
 actual_checksum=$(sha1sum $package_file | cut -f1 -d' ')
 if [[ "$actual_checksum" != "$expected_checksum" ]]; then
-  fail "Checksum mismatch for $(basename $package_file). Expected $expected_checksum, got $actual_checksum."
+  fail "Checksum $actual_checksum invalid"
 fi
+echo "Checksum valid!"
 
-echo 'Installing package.'
+header 'Installing package'
 synopkg install $package_file
 
-echo 'Restarting Plex Media Server.'
+header 'Restarting Plex Media Server'
 synopkg start 'Plex Media Server'
