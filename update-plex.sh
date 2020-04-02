@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function help() { cat <<EOH
+function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
 
 "Cowboy" Ben Alman
@@ -17,7 +17,7 @@ Usage: $(basename "$0") [options...]
 Options:
   --plex-pass  Enable early access / beta releases (requires Plex Pass)
   --help       Display this help message
-EOH
+HELP
 }
 
 set -o errexit
