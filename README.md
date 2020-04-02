@@ -24,6 +24,7 @@ you@yournas:~$ chmod a+x update-plex.sh
 Then, create a Scheduled Task with a User-defined script in the Synology DSM Control Panel:
 - Ensure the User is `root`
 - Ensure the Run command is `/path/to/update-plex.sh`
+- Add the `--plex-pass` option (eg. `/path/to/update-plex.sh --plex-pass`) if you have Plex Pass and want to enable early access / beta releases
 
 ## Notes
 
@@ -31,7 +32,6 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 - This was tested on a Synology DS918+ NAS. It should work with other Synology NAS models. If it doesn't, please file an issue or PR.
 - This assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
 - You'll probably need to [add Plex as a trusted publisher for package installations](https://support.plex.tv/hc/en-us/articles/205165858).
-- If you have Plex Pass and want to enable early access / beta releases, set `release_channel=plexpass` in the script.
 
 ## References
 

@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 
-# Script to Auto Update Plex Media Server on Synology NAS
-#
-# "Cowboy" Ben Alman
-# Last updated on 2020-04-01
-#
-# Download latest version from
-# https://github.com/cowboy/synology-update-plex
-#
-# Adapted from work first published at
-# https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
+function help() { cat <<HELP
+Auto Update Plex Media Server on Synology NAS
+
+"Cowboy" Ben Alman
+Last updated on 2020-04-02
+
+Download latest version from
+https://github.com/cowboy/synology-update-plex
+
+Adapted from work first published at
+https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
+
+Usage: $(basename "$0") [options...]
+
+Options:
+  --plex-pass  Enable early access / beta releases (requires Plex Pass)
+  --help       Display this help message
+HELP
+}
 
 set -o errexit
 set -o pipefail
@@ -18,8 +27,24 @@ set -o nounset
 
 shopt -s nullglob
 
-# Set release_channel=plexpass to enable early access / beta releases
-release_channel=
+plex_pass=
+while :; do
+  case "${1-}" in
+    -h|-\?|--help)
+      help
+      exit
+      ;;
+    --plex-pass)
+      plex_pass=1
+      ;;
+    -?*)
+      printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+      ;;
+    *)
+      break
+  esac
+  shift
+done
 
 tmp_dir=
 function cleanup() {
@@ -48,10 +73,10 @@ fi
 
 downloads_url="https://plex.tv/api/downloads/5.json"
 
-if [[ "$release_channel" == plexpass ]]; then
-  header "Using plexpass release channel"
+if [[ "$plex_pass" ]]; then
+  header "Enabling Plex Pass Releases"
 
-  pms_dir="$(find / -path '*/@appstore' -prune -o -path '*/Plex Media Server' -print -quit)"
+  pms_dir="$(find / -type d -name 'Plex Media Server' -execdir test -e "./Plex Media Server/Preferences.xml" \; -print -quit)"
   if [[ ! -d "$pms_dir" ]]; then
     fail 'Unable to find "Plex Media Server" directory'
   fi
@@ -76,18 +101,22 @@ if [[ -z "$downloads_json" ]]; then
   fail 'Unable to retrieve version data'
 fi
 
-latest_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
-echo "LATEST VERSION: $latest_version"
+available_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
+echo "AVAILABLE VERSION: $available_version"
 
-current_version=$(synopkg version 'Plex Media Server')
-echo "CURRENT VERSION: $current_version"
+installed_version=$(synopkg version 'Plex Media Server')
+echo "INSTALLED VERSION: $installed_version"
 
 # https://stackoverflow.com/a/4024263
 function version_lte() {
   [[ "$1" == "$(echo -e "$1\n$2" | sort -V | head -n1)" ]]
 }
 
-if version_lte $latest_version $current_version; then
+if version_lte $available_version $installed_version; then
+  if [[ "$installed_version" != "$available_version" ]]; then
+    echo 'The installed version of Plex is newer than the available version. If' \
+      'you have Plex Pass, be sure to run this script with the --plex-pass option.'
+  fi
   echo 'Plex is up-to-date.'
   exit
 fi
