@@ -28,8 +28,8 @@ set -o nounset
 shopt -s nullglob
 
 plex_pass=
-while :; do
-  case "${1-}" in
+while [[ "${1-}" ]]; do
+  case $1 in
     -h|-\?|--help)
       help
       exit
@@ -37,11 +37,9 @@ while :; do
     --plex-pass)
       plex_pass=1
       ;;
-    -?*)
+    *)
       printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
       ;;
-    *)
-      break
   esac
   shift
 done
