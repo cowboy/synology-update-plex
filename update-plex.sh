@@ -117,7 +117,7 @@ if version_lte $available_version $installed_version; then
     echo 'The installed version of Plex is newer than the available version. If' \
       'you have Plex Pass, be sure to run this script with the --plex-pass option.'
   fi
-  echo 'Plex is up-to-date'
+  echo 'Plex is up-to-date.'
   exit
 fi
 
