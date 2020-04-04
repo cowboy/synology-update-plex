@@ -4,7 +4,7 @@ function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
 
 "Cowboy" Ben Alman
-Last updated on 2020-04-02
+Last updated on 2020-04-04
 
 Download latest version from
 https://github.com/cowboy/synology-update-plex
@@ -44,14 +44,18 @@ while [[ "${1-}" ]]; do
   shift
 done
 
+function header() { echo -e "\n[ $@ ]"; }
+function fail() { echo "FAIL: $@"; exit 1; }
+
 tmp_dir=
 function cleanup() {
   code=$?
-  echo ""
   if [[ -d "$tmp_dir" ]]; then
-    echo 'Cleaning up temp files'
+    header 'Cleaning up'
+    echo "Removing $tmp_dir"
     rm -rf $tmp_dir
   fi
+  echo
   if [[ $code == 0 ]]; then
     echo 'Done!'
   else
@@ -59,9 +63,6 @@ function cleanup() {
   fi
 }
 trap cleanup EXIT
-
-function header() { echo -e "\n[ $@ ]"; }
-function fail() { echo "FAIL: $@"; exit 1; }
 
 echo 'Checking for a Plex Media Server update...'
 
@@ -159,8 +160,8 @@ echo "$release_json"
 
 header 'Downloading release package'
 package_url="$(jq -r .url <<< "$release_json")"
-tmp_dir=$(mktemp -d)
-wget --no-verbose "$package_url" -P $tmp_dir
+tmp_dir=$(mktemp -d --tmpdir plex.XXXXXX)
+wget --no-show-progress "$package_url" -P $tmp_dir 2>&1 | awk '!/--| saved |^$/'
 
 package_file=$(echo $tmp_dir/*.spk)
 if [[ ! -e "$package_file" ]]; then
