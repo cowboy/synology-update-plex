@@ -30,6 +30,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 - Be careful when SSHing into your NAS. I'm not responsible if you break anything!
 - This was tested on a Synology DS918+ NAS. It should work with other Synology NAS models. If it doesn't, please file an issue or PR.
+- If the script outputs `Unable to find "Plex Media Server" directory` when `--plex-pass` is specified, you may need to manually change `/volume*` in the script to your volume's root path.
 - This assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
 - You'll probably need to [add Plex as a trusted publisher for package installations](https://support.plex.tv/hc/en-us/articles/205165858).
 
