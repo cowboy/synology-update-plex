@@ -4,7 +4,7 @@ function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
 
 "Cowboy" Ben Alman
-Last updated on 2020-04-04
+Last updated on 2020-04-12
 
 Download latest version from
 https://github.com/cowboy/synology-update-plex
@@ -75,7 +75,7 @@ downloads_url="https://plex.tv/api/downloads/5.json"
 if [[ "$plex_pass" ]]; then
   header "Enabling Plex Pass Releases"
 
-  pms_dir="$(find / -type d -name 'Plex Media Server' -execdir test -e "{}/Preferences.xml" \; -print -quit)"
+  pms_dir="$(find /volume* -type d -name 'Plex Media Server' -execdir test -e "{}/Preferences.xml" \; -print -quit)"
   if [[ ! -d "$pms_dir" ]]; then
     fail 'Unable to find "Plex Media Server" directory'
   fi
