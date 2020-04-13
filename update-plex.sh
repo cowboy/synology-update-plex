@@ -75,7 +75,11 @@ downloads_url="https://plex.tv/api/downloads/5.json"
 if [[ "$plex_pass" ]]; then
   header "Enabling Plex Pass Releases"
 
-  pms_dir="$(find /volume* -type d -name 'Plex Media Server' -execdir test -e "{}/Preferences.xml" \; -print -quit)"
+  pms_dir="$(echo /volume*"/Plex/Library/Application Support/Plex Media Server")"
+  if [[ ! -d "$pms_dir" ]]; then
+    pms_dir="$(find /volume* -type d -name 'Plex Media Server' -execdir test -e "{}/Preferences.xml" \; -print -quit)"
+  fi
+
   if [[ ! -d "$pms_dir" ]]; then
     fail 'Unable to find "Plex Media Server" directory'
   fi
