@@ -27,6 +27,10 @@ set -o nounset
 
 shopt -s nullglob
 
+function header() { echo -e "\n[ $@ ]"; }
+function warn() { echo "WARN: $@" >&2; }
+function fail() { echo "FAIL: $@"; exit 1; }
+
 plex_pass=
 while [[ "${1-}" ]]; do
   case $1 in
@@ -38,14 +42,11 @@ while [[ "${1-}" ]]; do
       plex_pass=1
       ;;
     *)
-      printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+      warn "Unknown option (ignored): $1"
       ;;
   esac
   shift
 done
-
-function header() { echo -e "\n[ $@ ]"; }
-function fail() { echo "FAIL: $@"; exit 1; }
 
 tmp_dir=
 function cleanup() {
@@ -59,10 +60,56 @@ function cleanup() {
   if [[ $code == 0 ]]; then
     echo 'Done!'
   else
+    notify PlexUpdateError
     echo 'Done, with errors!'
   fi
 }
 trap cleanup EXIT
+
+function notify() {
+  synonotify $1 '{"%PLEX_VERSION%":"'${available_version:-(unknown)}'"}'
+}
+
+function init_notifications() {
+  lang="$(source /etc/synoinfo.conf; echo "$maillang")"
+  mails_file=/var/cache/texts/$lang/mails
+  if [[ ! -e "$mails_file" ]]; then
+    header "Initializing notification system"
+    echo "Notifications disabled (file $mails_file not found)"
+    return
+  fi
+  if [[ ! "$(grep PlexUpdateInstalled $mails_file || true)" ]]; then
+    header "Initializing notification system"
+    cp $mails_file $mails_file.bak
+    cat << 'EOF' >> $mails_file
+
+[PlexUpdateInstalled]
+Subject: Successfully updated Plex to %PLEX_VERSION% on %HOSTNAME%
+
+Dear user,
+
+Successfully updated Plex to %PLEX_VERSION% on %HOSTNAME%
+
+---
+https://github.com/cowboy/synology-update-plex
+
+
+[PlexUpdateError]
+Subject: Unable to update Plex to %PLEX_VERSION% on %HOSTNAME%
+
+Dear user,
+
+Unable to update Plex to %PLEX_VERSION% on %HOSTNAME%.
+
+If this error persists, enable saving output results in Task Scheduler and file an issue at https://github.com/cowboy/synology-update-plex/issues including the script output.
+
+---
+https://github.com/cowboy/synology-update-plex
+
+EOF
+    echo 'Notifications installed'
+  fi
+}
 
 echo 'Checking for a Plex Media Server update...'
 
@@ -70,10 +117,12 @@ if [[ $EUID != 0 ]]; then
   fail 'This script must be run as root'
 fi
 
+init_notifications
+
 downloads_url="https://plex.tv/api/downloads/5.json"
 
 if [[ "$plex_pass" ]]; then
-  header "Enabling Plex Pass Releases"
+  header "Enabling Plex Pass releases"
 
   pms_dir="$(echo /volume*"/Plex/Library/Application Support/Plex Media Server")"
   if [[ ! -d "$pms_dir" ]]; then
@@ -125,7 +174,6 @@ if version_lte $available_version $installed_version; then
 fi
 
 echo 'New version available!'
-synonotify PKGHasUpgrade '{"[%HOSTNAME%]": $(hostname), "[%OSNAME%]": "Synology", "[%PKG_HAS_UPDATE%]": "Plex", "[%COMPANY_NAME%]": "Synology"}'
 
 header 'Finding release'
 hw_version=$(</proc/sys/kernel/syno_hw_version)
@@ -185,3 +233,5 @@ synopkg install $package_file
 
 header 'Restarting Plex Media Server'
 synopkg start 'Plex Media Server'
+
+notify PlexUpdateInstalled
