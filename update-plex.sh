@@ -4,7 +4,7 @@ function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
 
 "Cowboy" Ben Alman
-Last updated on 2020-04-12
+Last updated on 2020-04-13
 
 Download latest version from
 https://github.com/cowboy/synology-update-plex
@@ -119,7 +119,7 @@ fi
 
 init_notifications
 
-downloads_url="https://plex.tv/api/downloads/5.json"
+downloads_url='https://plex.tv/api/downloads/5.json'
 
 if [[ "$plex_pass" ]]; then
   header "Enabling Plex Pass releases"
