@@ -4,7 +4,7 @@ function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
 
 "Cowboy" Ben Alman
-Last updated on 2020-04-13
+Last updated on 2020-04-21
 
 Download latest version from
 https://github.com/cowboy/synology-update-plex
@@ -154,16 +154,17 @@ if [[ -z "$downloads_json" ]]; then
 fi
 
 available_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
-echo "AVAILABLE VERSION: $available_version"
+echo "Available version: $available_version"
 
 installed_version=$(synopkg version 'Plex Media Server')
-echo "INSTALLED VERSION: $installed_version"
+echo "Installed version: $installed_version"
 
 # https://stackoverflow.com/a/4024263
 function version_lte() {
   [[ "$1" == "$(echo -e "$1\n$2" | sort -V | head -n1)" ]]
 }
 
+echo
 if version_lte $available_version $installed_version; then
   if [[ "$installed_version" != "$available_version" ]]; then
     echo 'The installed version of Plex is newer than the available version. If' \
