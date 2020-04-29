@@ -214,7 +214,7 @@ echo "$release_json"
 header 'Downloading release package'
 package_url="$(jq -r .url <<< "$release_json")"
 tmp_dir=$(mktemp -d --tmpdir plex.XXXXXX)
-wget -q "$package_url" -P $tmp_dir 2>&1 | awk '!/--| saved |^$/'
+wget --no-verbose "$package_url" -P $tmp_dir 2>&1 | awk '!/--| saved |^$/'
 
 package_file=$(echo $tmp_dir/*.spk)
 if [[ ! -e "$package_file" ]]; then
