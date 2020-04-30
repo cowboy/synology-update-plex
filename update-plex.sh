@@ -4,7 +4,7 @@ function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
 
 "Cowboy" Ben Alman
-Last updated on 2020-04-21
+Last updated on 2020-04-29
 
 Download latest version from
 https://github.com/cowboy/synology-update-plex
@@ -214,7 +214,7 @@ echo "$release_json"
 header 'Downloading release package'
 package_url="$(jq -r .url <<< "$release_json")"
 tmp_dir=$(mktemp -d --tmpdir plex.XXXXXX)
-wget --no-show-progress "$package_url" -P $tmp_dir 2>&1 | awk '!/--| saved |^$/'
+wget --no-verbose "$package_url" -P $tmp_dir
 
 package_file=$(echo $tmp_dir/*.spk)
 if [[ ! -e "$package_file" ]]; then
