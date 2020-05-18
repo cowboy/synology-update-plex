@@ -2,7 +2,7 @@
 > Script to Auto Update Plex Media Server on Synology NAS
 
 [![Latest Release](https://img.shields.io/github/v/release/cowboy/synology-update-plex)][release]
-![Test](https://github.com/cowboy/synology-update-plex/workflows/Test/badge.svg)
+[![Test](https://github.com/cowboy/synology-update-plex/workflows/Test/badge.svg)][test-master]
 
 ## Goals
 
@@ -31,6 +31,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 ## Notes
 
+[test-master]: https://github.com/cowboy/synology-update-plex/actions?query=workflow%3ATest+branch%3Amaster
 [release]: https://github.com/cowboy/synology-update-plex/releases/latest
 [issue]: https://github.com/cowboy/synology-update-plex/issues
 [pr]: https://github.com/cowboy/synology-update-plex/pulls
