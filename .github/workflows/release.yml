@@ -1,0 +1,17 @@
+name: Release
+on:
+  release:
+    types: [created]
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: skx/github-action-build@master
+      with:
+        builder: .github/build.sh
+    - uses: skx/github-action-publish-binaries@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        args: 'build/update-plex.sh'
