@@ -4,12 +4,21 @@ setup() {
   load "${BATS_TEST_DIRNAME}"/../update-plex.sh
 }
 
-@test "get_arch :: should return the passed-in arch if not armv7" {
-  run get_arch other_arch DS9001;     [[ "$output" == "other_arch" ]]
-}
-
-# Model list from
+# The following armv7 logic was derived from the labels here:
+# curl -s "https://plex.tv/api/downloads/5.json" | jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7"))'
+#
+# linux-armv7hf
+#   ARMv7 (x13 Series, x14 Series (excluding DS414j), DS115j, RS815, and DS216se)
+# linux-armv7hf_neon
+#   ARMv7 (x15 Series (excluding DS115j and RS815), x16 Series (excluding DS216se), x17 Series, x18 Series, and DS414j)
+#
+# Full model list from:
 # https://www.synology.com/en-us/knowledgebase/DSM/tutorial/Compatibility_Peripherals/What_kind_of_CPU_does_my_NAS_have
+#
+# If you're running into problems with the script trying to download the wrong
+# release file for your NAS, please note the output of `uname -m` and the
+# contents of /proc/sys/kernel/syno_hw_version and compare them to the table
+# below. If anything is missing or incorrect, please file an issue!
 
 @test "get_arch :: should return the correct arch for the x18 series" {
   run get_arch armv7 RS3618xs;        [[ "$output" == "armv7hf_neon" ]]
@@ -120,4 +129,8 @@ setup() {
   run get_arch armv7 DS213;           [[ "$output" == "armv7hf" ]]
   run get_arch armv7 DS213air;        [[ "$output" == "armv7hf" ]]
   run get_arch armv7 DS213j;          [[ "$output" == "armv7hf" ]]
+}
+
+@test "get_arch :: should return the passed-in arch if not armv7" {
+  run get_arch other_arch DS9001;     [[ "$output" == "other_arch" ]]
 }

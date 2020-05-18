@@ -1,6 +1,10 @@
 # synology-update-plex
 > Script to Auto Update Plex Media Server on Synology NAS
 
+[![Latest Release](https://img.shields.io/github/v/release/cowboy/synology-update-plex)][release]
+[![Test](https://github.com/cowboy/synology-update-plex/workflows/Test/badge.svg)][test-master]
+[![Donate](https://img.shields.io/badge/Support%20this%20project!-$5-success)][donate]
+
 ## Goals
 
 - Make the echoed messages super clear
@@ -13,11 +17,11 @@
 
 ## Usage
 
-First, SSH into your NAS, save the [update-plex.sh](update-plex.sh) script somewhere and set it as executable:
+First, SSH into your NAS, save the [latest release][release] update-plex.sh script somewhere and set it as executable:
 
 ```sh
 $ ssh you@IP_OF_YOUR_NAS
-you@yournas:~$ wget "https://raw.githubusercontent.com/cowboy/synology-update-plex/master/update-plex.sh"
+you@yournas:~$ wget "https://github.com/cowboy/synology-update-plex/releases/latest/download/update-plex.sh"
 you@yournas:~$ chmod a+x update-plex.sh
 ```
 
@@ -28,12 +32,16 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 ## Notes
 
+[donate]: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RRUNYDUYBAH58&source=url
+[test-master]: https://github.com/cowboy/synology-update-plex/actions?query=workflow%3ATest+branch%3Amaster
+[release]: https://github.com/cowboy/synology-update-plex/releases/latest
 [issue]: https://github.com/cowboy/synology-update-plex/issues
 [pr]: https://github.com/cowboy/synology-update-plex/pulls
 
 - Be careful when SSHing into your NAS. I'm not responsible if you break anything!
 - This script may contain bugs. I'm not responsible if it breaks anything!
 - This script has been tested on a Synology DS918+ NAS. It should work with other Synology NAS models.
+- If the script is trying to download the wrong release file for your NAS, please see the comments at the top of the [get_arch](/test/get_arch.bats) test suite.
 - If you find a bug, please [file an issue][issue] or [create a pull request][pr]. Explain the situation and include all script output.
 - If the script outputs `Unable to find "Plex Media Server" directory` when `--plex-pass` is specified, you may need to manually change `/volume*` in the script to your volume's root path.
 - This assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
