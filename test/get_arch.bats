@@ -4,7 +4,15 @@ setup() {
   load "${BATS_TEST_DIRNAME}"/../update-plex.sh
 }
 
-# Model list from
+# The following armv7 logic was derived from the labels here:
+# curl -s "https://plex.tv/api/downloads/5.json" | jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7"))'
+#
+# linux-armv7hf
+#   ARMv7 (x13 Series, x14 Series (excluding DS414j), DS115j, RS815, and DS216se)
+# linux-armv7hf_neon
+#   ARMv7 (x15 Series (excluding DS115j and RS815), x16 Series (excluding DS216se), x17 Series, x18 Series, and DS414j)
+#
+# Full model list from:
 # https://www.synology.com/en-us/knowledgebase/DSM/tutorial/Compatibility_Peripherals/What_kind_of_CPU_does_my_NAS_have
 #
 # If you're running into problems with the script trying to download the wrong

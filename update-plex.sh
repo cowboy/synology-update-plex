@@ -180,15 +180,6 @@ function check_up_to_date() {
   echo 'New version available!'
 }
 
-# The following armv7 logic was derived from:
-#
-# curl -s "https://plex.tv/api/downloads/5.json" | jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7"))'
-#
-# linux-armv7hf
-#   ARMv7 (x13 Series, x14 Series (excluding DS414j), DS115j, RS815, and DS216se)
-# linux-armv7hf_neon
-#   ARMv7 (x15 Series (excluding DS115j and RS815), x16 Series (excluding DS216se), x17 Series, x18 Series, and DS414j)
-
 function get_arch() {
   local arch hw_version=$1 machine=$2
   if [[ "$hw_version" =~ armv7 ]]; then
