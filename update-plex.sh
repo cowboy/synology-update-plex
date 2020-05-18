@@ -194,7 +194,7 @@ function get_arch() {
   if [[ "$hw_version" =~ armv7 ]]; then
     declare -A model_machine_map
     model_machine_map[DS414j]=armv7hf_neon
-    model_machine_map[DS115j]=armv7hfX
+    model_machine_map[DS115j]=armv7hf
     model_machine_map[RS815]=armv7hf
     model_machine_map[DS216se]=armv7hf
     if [[ "${model_machine_map[$machine]+_}" ]]; then
