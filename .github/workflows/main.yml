@@ -1,0 +1,14 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Bash Automated Testing System
+      uses: mig4/setup-bats@master
+      with:
+        bats-version: 1.2.0
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Run Tests
+      run: bats test
