@@ -19,8 +19,7 @@ Options:
 HELP
 }
 
-# This gets replaced with the release version when the release is created
-function version() { echo "(in-development)"; }
+function version() { echo "(in-development)"; } # value auto-generated during release
 
 function header() { echo -e "\n[ $@ ]"; }
 function warn() { echo "WARN: $@" >&2; }
