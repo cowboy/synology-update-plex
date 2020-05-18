@@ -1,0 +1,15 @@
+{
+  "name": "synology-update-plex",
+  "version": "0.0.1",
+  "description": "Script to Auto Update Plex Media Server on Synology NAS",
+  "main": "index.js",
+  "repository": "git@github.com:cowboy/synology-update-plex.git",
+  "author": "Ben Alman <cowboy@rj3.net>",
+  "private": true,
+  "scripts": {
+    "test": "bats test"
+  },
+  "devDependencies": {
+    "bats": "^1.1.0"
+  }
+}
