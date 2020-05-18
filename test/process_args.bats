@@ -9,19 +9,15 @@ setup() {
   [[ ! "$output" ]]
 }
 
-@test 'process_args :: should print help when --help is specified' {
-  run process_args --help
-  [[ "$output" =~ Usage ]]
+@test 'process_args :: should print help when --help/-h/-? is specified' {
+  run process_args --help; [[ "$output" =~ Usage ]]
+  run process_args -h; [[ "$output" =~ Usage ]]
+  run process_args -?; [[ "$output" =~ Usage ]]
 }
 
-@test 'process_args :: should print help when -h is specified' {
-  run process_args -h
-  [[ "$output" =~ Usage ]]
-}
-
-@test 'process_args :: should print help when -? is specified' {
-  run process_args -?
-  [[ "$output" =~ Usage ]]
+@test 'process_args :: should print version when --version/-v is specified' {
+  run process_args --version; [[ "$output" == '(in-development)' ]]
+  run process_args -v; [[ "$output" == '(in-development)' ]]
 }
 
 @test 'process_args :: should not set plex_pass by default' {
