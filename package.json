@@ -7,9 +7,11 @@
   "author": "Ben Alman <cowboy@rj3.net>",
   "private": true,
   "scripts": {
-    "test": "bats test"
+    "test": "bats test",
+    "watch": "chokidar \"**/*.{sh,bats}\" -c \"bats test\""
   },
   "devDependencies": {
-    "bats": "^1.1.0"
+    "bats": "^1.1.0",
+    "chokidar-cli": "^2.1.0"
   }
 }

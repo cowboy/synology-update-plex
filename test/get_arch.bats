@@ -4,11 +4,14 @@ setup() {
   load "${BATS_TEST_DIRNAME}"/../update-plex.sh
 }
 
-@test 'get_arch: should return the passed-in arch if not armv7' {
+@test "get_arch :: should return the passed-in arch if not armv7" {
   run get_arch other_arch DS9001;     [[ "$output" == "other_arch" ]]
 }
 
-@test 'get_arch: should return the correct arch for the x18 series' {
+# Model list from
+# https://www.synology.com/en-us/knowledgebase/DSM/tutorial/Compatibility_Peripherals/What_kind_of_CPU_does_my_NAS_have
+
+@test "get_arch :: should return the correct arch for the x18 series" {
   run get_arch armv7 RS3618xs;        [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS2818RP+;       [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS2418+;         [[ "$output" == "armv7hf_neon" ]]
@@ -29,7 +32,7 @@ setup() {
   run get_arch armv7 DS118;           [[ "$output" == "armv7hf_neon" ]]
 }
 
-@test 'get_arch: should return the correct arch for the x17 series' {
+@test "get_arch :: should return the correct arch for the x17 series" {
   run get_arch armv7 RS18017xs+;      [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS4017xs+;       [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS3617xs+;       [[ "$output" == "armv7hf_neon" ]]
@@ -43,7 +46,7 @@ setup() {
   run get_arch armv7 DS1517;          [[ "$output" == "armv7hf_neon" ]]
 }
 
-@test 'get_arch: should return the correct arch for the x16 series' {
+@test "get_arch :: should return the correct arch for the x16 series" {
   run get_arch armv7 RS18016xs+;      [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS2416+;         [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS2416RP+;       [[ "$output" == "armv7hf_neon" ]]
@@ -64,7 +67,7 @@ setup() {
   run get_arch armv7 DS116;           [[ "$output" == "armv7hf_neon" ]]
 }
 
-@test 'get_arch: should return the correct arch for the x15 series' {
+@test "get_arch :: should return the correct arch for the x15 series" {
   run get_arch armv7 RS815+;          [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS815RP+;        [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 RS815;           [[ "$output" == "armv7hf" ]]
@@ -84,7 +87,7 @@ setup() {
   run get_arch armv7 DS115j;          [[ "$output" == "armv7hf" ]]
 }
 
-@test 'get_arch: should return the correct arch for the x14 series' {
+@test "get_arch :: should return the correct arch for the x14 series" {
   run get_arch armv7 RS3614xs+;       [[ "$output" == "armv7hf" ]]
   run get_arch armv7 RS3614xs;        [[ "$output" == "armv7hf" ]]
   run get_arch armv7 RS3614RPxs;      [[ "$output" == "armv7hf" ]]
@@ -104,7 +107,7 @@ setup() {
   run get_arch armv7 DS114;           [[ "$output" == "armv7hf" ]]
 }
 
-@test 'get_arch: should return the correct arch for the x13 series' {
+@test "get_arch :: should return the correct arch for the x13 series" {
   run get_arch armv7 RS10613xs+;      [[ "$output" == "armv7hf" ]]
   run get_arch armv7 RS3413xs+;       [[ "$output" == "armv7hf" ]]
   run get_arch armv7 DS2413+;         [[ "$output" == "armv7hf" ]]
