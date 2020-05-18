@@ -1,6 +1,9 @@
 # synology-update-plex
 > Script to Auto Update Plex Media Server on Synology NAS
 
+[![Latest Release](https://img.shields.io/github/v/release/cowboy/synology-update-plex)][release]
+![Test](https://github.com/cowboy/synology-update-plex/workflows/Test/badge.svg)
+
 ## Goals
 
 - Make the echoed messages super clear
@@ -13,11 +16,11 @@
 
 ## Usage
 
-First, SSH into your NAS, save the [update-plex.sh](update-plex.sh) script somewhere and set it as executable:
+First, SSH into your NAS, save the [latest release][release] update-plex.sh script somewhere and set it as executable:
 
 ```sh
 $ ssh you@IP_OF_YOUR_NAS
-you@yournas:~$ wget "https://raw.githubusercontent.com/cowboy/synology-update-plex/master/update-plex.sh"
+you@yournas:~$ wget "https://github.com/cowboy/synology-update-plex/releases/latest/download/update-plex.sh"
 you@yournas:~$ chmod a+x update-plex.sh
 ```
 
@@ -28,6 +31,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 ## Notes
 
+[release]: https://github.com/cowboy/synology-update-plex/releases/latest
 [issue]: https://github.com/cowboy/synology-update-plex/issues
 [pr]: https://github.com/cowboy/synology-update-plex/pulls
 
