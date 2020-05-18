@@ -3,7 +3,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/cowboy/synology-update-plex)][release]
 [![Test](https://github.com/cowboy/synology-update-plex/workflows/Test/badge.svg)][test-master]
-[![Donate](https://img.shields.io/badge/Consider%20donating-$anything-success)][donate]
+[![Donate](https://img.shields.io/badge/Support%20this%20project!-$5-success)][donate]
 
 ## Goals
 
