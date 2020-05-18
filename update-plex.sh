@@ -2,11 +2,9 @@
 
 function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
+Version $(version)
 
-"Cowboy" Ben Alman
-Last updated on 2020-05-17
-
-Download latest version from
+Download latest release from
 https://github.com/cowboy/synology-update-plex
 
 Adapted from work first published at
@@ -16,9 +14,13 @@ Usage: $(basename "$0") [options...]
 
 Options:
   --plex-pass  Enable early access / beta releases (requires Plex Pass)
+  --version    Display the script release version
   --help       Display this help message
 HELP
 }
+
+# This gets replaced with the release version when the release is created
+function version() { echo "(in-development)"; }
 
 function header() { echo -e "\n[ $@ ]"; }
 function warn() { echo "WARN: $@" >&2; }
@@ -29,6 +31,10 @@ function process_args() {
     case $1 in
       -h|-\?|--help)
         help
+        exit
+        ;;
+      -v|--version)
+        version
         exit
         ;;
       --plex-pass)
@@ -175,7 +181,8 @@ function check_up_to_date() {
 }
 
 # The following armv7 logic was derived from:
-# jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7"))' <<< "$downloads_json"
+#
+# curl -s "https://plex.tv/api/downloads/5.json" | jq -r '.nas.Synology.releases[] | select(.label | contains("ARMv7"))'
 #
 # linux-armv7hf
 #   ARMv7 (x13 Series, x14 Series (excluding DS414j), DS115j, RS815, and DS216se)
@@ -183,22 +190,22 @@ function check_up_to_date() {
 #   ARMv7 (x15 Series (excluding DS115j and RS815), x16 Series (excluding DS216se), x17 Series, x18 Series, and DS414j)
 
 function get_arch() {
-  local arch
-  if [[ "$1" =~ armv7 ]]; then
+  local arch hw_version=$1 machine=$2
+  if [[ "$hw_version" =~ armv7 ]]; then
     declare -A model_machine_map
     model_machine_map[DS414j]=armv7hf_neon
     model_machine_map[DS115j]=armv7hf
     model_machine_map[RS815]=armv7hf
     model_machine_map[DS216se]=armv7hf
-    if [[ "${model_machine_map[$2]+_}" ]]; then
-      arch=${model_machine_map[$2]}
-    elif [[ "${2//[^0-9]/}" =~ 1[5-8]$ ]]; then
+    if [[ "${model_machine_map[$machine]+_}" ]]; then
+      arch=${model_machine_map[$machine]}
+    elif [[ "${machine//[^0-9]/}" =~ 1[5-8]$ ]]; then
       arch=armv7hf_neon
     else
       arch=armv7hf
     fi
   else
-    arch=$1
+    arch=$hw_version
   fi
   echo $arch
 }
