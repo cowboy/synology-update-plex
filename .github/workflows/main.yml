@@ -4,11 +4,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: actions/checkout@v2
     - name: Setup Bash Automated Testing System
       uses: mig4/setup-bats@master
       with:
         bats-version: 1.2.0
-    - name: Checkout Code
-      uses: actions/checkout@v2
     - name: Run Tests
       run: bats test
