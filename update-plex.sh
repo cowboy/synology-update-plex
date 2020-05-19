@@ -146,12 +146,14 @@ function retrieve_version_data() {
   fi
 }
 
-function get_available_version() {
-  jq -r .nas.Synology.version <<< "$downloads_json"
+function set_available_version() {
+  available_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
+  echo "Available version: $available_version"
 }
 
-function get_installed_version() {
-  synopkg version 'Plex Media Server'
+function set_installed_version() {
+  installed_version=$(synopkg version 'Plex Media Server')
+  echo "Installed version: $installed_version"
 }
 
 # https://stackoverflow.com/a/4024263
@@ -160,11 +162,8 @@ function version_lte() {
 }
 
 function check_up_to_date() {
-  local available_version=$(get_available_version)
-  echo "Available version: $available_version"
-
-  local installed_version=$(get_installed_version)
-  echo "Installed version: $installed_version"
+  set_available_version
+  set_installed_version
 
   echo
   if version_lte "$available_version" "$installed_version"; then
