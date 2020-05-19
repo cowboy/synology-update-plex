@@ -180,22 +180,22 @@ function check_up_to_date() {
 }
 
 function get_arch() {
-  local arch hw_version=$1 machine=$2
-  if [[ "$hw_version" =~ armv7 ]]; then
+  local arch machine=$1 hw_version=$2
+  if [[ "$machine" =~ armv7 ]]; then
     declare -A model_machine_map
     model_machine_map[DS414j]=armv7hf_neon
     model_machine_map[DS115j]=armv7hf
     model_machine_map[RS815]=armv7hf
     model_machine_map[DS216se]=armv7hf
-    if [[ "${model_machine_map[$machine]+_}" ]]; then
-      arch=${model_machine_map[$machine]}
-    elif [[ "${machine//[^0-9]/}" =~ 1[5-8]$ ]]; then
+    if [[ "${model_machine_map[$hw_version]+_}" ]]; then
+      arch=${model_machine_map[$hw_version]}
+    elif [[ "${hw_version//[^0-9]/}" =~ 1[5-8]$ ]]; then
       arch=armv7hf_neon
     else
       arch=armv7hf
     fi
   else
-    arch=$hw_version
+    arch=$machine
   fi
   echo $arch
 }
@@ -204,7 +204,7 @@ function find_release() {
   header 'Finding release'
   local hw_version=$(</proc/sys/kernel/syno_hw_version)
   local machine=$(uname -m)
-  local arch=$(get_arch "$hw_version" "$machine")
+  local arch=$(get_arch "$machine" "$hw_version")
   release_json="$(jq '.nas.Synology.releases[] | select(.build == "linux-'$arch'")' <<< "$downloads_json")"
   if [[ -z "$release_json" ]]; then
     fail "Unable to find release for $hw_version/$machine/$arch"
