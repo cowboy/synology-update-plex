@@ -19,6 +19,9 @@ setup() {
 # release file for your NAS, please note the output of `uname -m` and the
 # contents of /proc/sys/kernel/syno_hw_version and compare them to the table
 # below. If anything is missing or incorrect, please file an issue!
+#
+# Related issues:
+# https://github.com/cowboy/synology-update-plex/issues/11
 
 @test "get_arch :: should return the correct arch for the x18 series" {
   run get_arch armv7 RS3618xs;        [[ "$output" == "armv7hf_neon" ]]
@@ -71,6 +74,7 @@ setup() {
   run get_arch armv7 DS216+;          [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS216;           [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS216play;       [[ "$output" == "armv7hf_neon" ]]
+  run get_arch armv7 DS216play-j;     [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS216j;          [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS216se;         [[ "$output" == "armv7hf" ]]
   run get_arch armv7 DS116;           [[ "$output" == "armv7hf_neon" ]]
@@ -92,6 +96,7 @@ setup() {
   run get_arch armv7 DS415play;       [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS215+;          [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS215j;          [[ "$output" == "armv7hf_neon" ]]
+  run get_arch armv7 DS215jv10-j;     [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS115;           [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS115j;          [[ "$output" == "armv7hf" ]]
 }
