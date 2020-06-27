@@ -7,16 +7,16 @@ assignees: ''
 
 ---
 
-**Script output**
+### Script output
 ```
 Add update-plex.sh script output here.
 ```
 
-**NAS Model**
+### NAS Model
 Add Synology NAS Model here.
 
-**DSM Version**
+### DSM Version
 Add DSM version here.
 
-**Additional context**
+### Additional context
 Add any other context about the problem here.
