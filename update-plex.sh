@@ -194,6 +194,8 @@ function get_arch() {
     else
       arch=armv7hf
     fi
+  elif [[ "$machine" =~ i686 ]]; then
+    arch=x86
   else
     arch=$machine
   fi
