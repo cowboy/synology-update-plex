@@ -16,12 +16,13 @@ setup() {
 # https://www.synology.com/en-us/knowledgebase/DSM/tutorial/Compatibility_Peripherals/What_kind_of_CPU_does_my_NAS_have
 #
 # If you're running into problems with the script trying to download the wrong
-# release file for your NAS, please note the output of `uname -m` and the
-# contents of /proc/sys/kernel/syno_hw_version and compare them to the table
-# below. If anything is missing or incorrect, please file an issue!
+# release file for your NAS, please note the output of the `uname -m` command
+# and the contents of the /proc/sys/kernel/syno_hw_version file and compare them
+# to the table below. If anything is missing or incorrect, please file an issue!
 #
 # Related issues:
 # https://github.com/cowboy/synology-update-plex/issues/11
+# https://github.com/cowboy/synology-update-plex/issues/19
 
 @test "get_arch :: should return the correct arch for the x18 series" {
   run get_arch armv7 RS3618xs;        [[ "$output" == "armv7hf_neon" ]]
@@ -136,6 +137,10 @@ setup() {
   run get_arch armv7 DS213j;          [[ "$output" == "armv7hf" ]]
 }
 
-@test "get_arch :: should return the passed-in arch if not armv7" {
+@test "get_arch :: should return x86 if passed-in arch is i686" {
+  run get_arch i686 DS9001;           [[ "$output" == "x86" ]]
+}
+
+@test "get_arch :: should return the passed-in arch if not one of: armv7, i686" {
   run get_arch other_arch DS9001;     [[ "$output" == "other_arch" ]]
 }
