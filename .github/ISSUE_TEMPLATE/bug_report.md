@@ -9,7 +9,7 @@ assignees: ''
 
 ### Script output
 ```
-Add update-plex.sh script output here.
+Add update-plex.sh script output here, between the ``` lines.
 ```
 
 ### NAS Model
