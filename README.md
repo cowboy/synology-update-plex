@@ -30,7 +30,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 - Ensure the Run command is `/path/to/update-plex.sh`
 - Add the `--plex-pass` option (eg. `/path/to/update-plex.sh --plex-pass`) if you have Plex Pass and want to enable early access / beta releases
 
-## Notes
+## Caveats
 
 [donate]: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RRUNYDUYBAH58&source=url
 [test-master]: https://github.com/cowboy/synology-update-plex/actions?query=workflow%3ATest+branch%3Amaster
@@ -41,11 +41,16 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 - Be careful when SSHing into your NAS. I'm not responsible if you break anything!
 - This script may contain bugs. I'm not responsible if it breaks anything!
 - This script has been tested on a Synology DS918+ NAS. It should work with other Synology NAS models.
+- This script assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
+
+## Common Issues
+
 - If the script is trying to download the wrong release file for your NAS, please see the comments at the top of the [get_arch](/test/get_arch.bats) test suite.
-- If you find a bug, please [file an issue][issue] or [create a pull request][pr]. Explain the situation and include all script output.
-- If the script outputs `Unable to find "Plex Media Server" directory` when `--plex-pass` is specified, you may need to manually change `/volume*` in the script to your volume's root path.
-- This assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
-- You'll probably need to [add Plex as a trusted publisher for package installations](https://support.plex.tv/hc/en-us/articles/205165858).
+- If the script fails with `Unable to find "Plex Media Server" directory` when `--plex-pass` is specified, you may need to manually change `/volume*` in the script to your volume's root path.
+- If the script fails with `error = [289]` while installing package, [add Plex as a trusted publisher for package installations](https://support.plex.tv/hc/en-us/articles/205165858).
+
+If you find a bug or an issue not listed here, please [file an issue][issue] or [create a pull request][pr]. Explain the situation and include all script output.
+
 
 ## References
 
