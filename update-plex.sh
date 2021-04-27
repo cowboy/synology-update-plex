@@ -152,7 +152,8 @@ function set_available_version() {
 }
 
 function set_installed_version() {
-  installed_version=$(synopkg version 'Plex Media Server')
+  installed_version=$(/var/packages/Plex\ Media\ Server/target/Plex\ Media\ Server --version)
+  installed_version=${installed_version:1}
   echo "Installed version: $installed_version"
 }
 
