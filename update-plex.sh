@@ -108,6 +108,20 @@ EOF
   fi
 }
 
+function retrieve_dsm_version() {
+  header "Retrieving DSM version"
+  dsm_major_version=$(awk -F "=" '/majorversion/ {print $2}' /etc.defaults/VERSION | tr -d '"')
+  if [[ "7" -eq "$dsm_major_version" ]]; then
+    json_dsm_pattern="Synology (DSM 7)"
+    pms_package_name="PlexMediaServer"
+    echo "Found DSM version 7"
+  else
+    json_dsm_pattern="Synology"
+    pms_package_name="Plex Media Server"
+    echo "Found DSM version <6"
+  fi
+}
+
 function build_downloads_url() {
   downloads_url='https://plex.tv/api/downloads/5.json'
 
@@ -147,12 +161,12 @@ function retrieve_version_data() {
 }
 
 function set_available_version() {
-  available_version=$(jq -r .nas.Synology.version <<< "$downloads_json")
+  available_version=$(jq -r '.nas["'"$json_dsm_pattern"'"].version' <<< "$downloads_json")
   echo "Available version: $available_version"
 }
 
 function set_installed_version() {
-  installed_version=$(synopkg version 'Plex Media Server')
+  installed_version=$(synopkg version "$pms_package_name")
   echo "Installed version: $installed_version"
 }
 
@@ -207,7 +221,7 @@ function find_release() {
   local hw_version=$(</proc/sys/kernel/syno_hw_version)
   local machine=$(uname -m)
   local arch=$(get_arch "$machine" "$hw_version")
-  release_json="$(jq '.nas.Synology.releases[] | select(.build == "linux-'$arch'")' <<< "$downloads_json")"
+  release_json="$(jq '.nas["'"$json_dsm_pattern"'"].releases[] | select(.build == "linux-'$arch'")' <<< "$downloads_json")"
   if [[ -z "$release_json" ]]; then
     fail "Unable to find release for $hw_version/$machine/$arch"
   fi
@@ -242,7 +256,7 @@ function install_package() {
 
 function restart_plex() {
   header 'Restarting Plex Media Server'
-  synopkg start 'Plex Media Server'
+  synopkg start "$pms_package_name"
 }
 
 function main() {
@@ -266,6 +280,8 @@ function main() {
   fi
 
   init_notifications
+
+  retrieve_dsm_version
 
   build_downloads_url
   retrieve_version_data
