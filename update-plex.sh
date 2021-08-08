@@ -128,7 +128,12 @@ function build_downloads_url() {
   if [[ "$plex_pass" ]]; then
     header "Enabling Plex Pass releases"
 
-    local pms_dir="$(echo /volume*"/Plex/Library/Application Support/Plex Media Server")"
+    if ["$pms_package_name"=="PlexMediaServer"]
+	  then
+    	local pms_dir="$(echo "/var/packages/PlexMediaServer/home/Plex Media Server")"
+    else
+    	local pms_dir="$(echo /volume*"/Plex/Library/Application Support/Plex Media Server")"
+    fi
     if [[ ! -d "$pms_dir" ]]; then
       pms_dir="$(find /volume* -type d -name 'Plex Media Server' -execdir test -e "{}/Preferences.xml" \; -print -quit)"
     fi
