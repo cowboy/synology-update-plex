@@ -295,6 +295,7 @@ function main() {
   shopt -s nullglob
 
   plex_pass=
+  update_chromecast=
   process_args "$@"
 
   tmp_dir=
