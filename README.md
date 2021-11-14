@@ -29,6 +29,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 - Ensure the User is `root`
 - Ensure the Run command is `/path/to/update-plex.sh`
 - Add the `--plex-pass` option (eg. `/path/to/update-plex.sh --plex-pass`) if you have Plex Pass and want to enable early access / beta releases
+- Add the `--update-chromecast` if you want to update the Chromecast profile to be able to directly stream without transcoding newer codecs like H.265, EAC3, etc. to Chromecast devices (see [ambroisemaupate's Github](https://github.com/ambroisemaupate/plex-profiles))
 
 ## Caveats
 
@@ -57,7 +58,7 @@ If you find a bug or an issue not listed here, please [file an issue][issue] or 
 Adapted from work first published at:
 - https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
 
-Inlcuding other update scripts such as:
+Including other update scripts such as:
 - https://github.com/martinorob/plexupdate
 - https://github.com/nitantsoni/plexupdate
 - https://gist.github.com/seanhamlin/dcde16a164377dca87a798a4c2ea051c
