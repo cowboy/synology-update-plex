@@ -40,7 +40,7 @@ function process_args() {
       --plex-pass)
         plex_pass=1
         ;;
-      --update_chromecast)
+      --update-chromecast)
         update_chromecast=1
         ;;
       *)
