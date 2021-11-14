@@ -13,9 +13,10 @@ https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
 Usage: $(basename "$0") [options...]
 
 Options:
-  --plex-pass  Enable early access / beta releases (requires Plex Pass)
-  --version    Display the script release version
-  --help       Display this help message
+  --plex-pass         Enable early access / beta releases (requires Plex Pass)
+  --update-chromecast Update Chromecast profile to support newer codecs
+  --version           Display the script release version
+  --help              Display this help message
 HELP
 }
 
@@ -38,6 +39,9 @@ function process_args() {
         ;;
       --plex-pass)
         plex_pass=1
+        ;;
+      --update_chromecast)
+        update_chromecast=1
         ;;
       *)
         warn "Unknown option (ignored): $1"
@@ -254,6 +258,29 @@ function install_package() {
   synopkg install $package_file
 }
 
+function update_chromecast() {
+  header 'Updating Chromecast profile'
+  local xml_file=""
+  local found="no"
+  for volume in /volume*; do
+    xml_file="$volume/@appstore/$pms_package_name/Resources/Profiles/Chromecast.xml"
+    if [[ -f "$xml_file" ]]; then
+      local owner=$(stat -c "%U:%G" "$xml_file")
+      local permissions=$(stat -c "%a" "$xml_file")
+      wget -q -O "$xml_file" "https://raw.githubusercontent.com/ambroisemaupate/plex-profiles/master/Chromecast.xml"
+      chown "$owner" "$xml_file"
+      chmod $permissions "$xml_file"
+	  found="yes"
+      break
+    fi
+  done
+
+  if [[ "$found" != "yes" ]]; then
+    fail "Can't find Chromecast.xml file"
+  fi
+  echo "Chromecast.xml profile updated"
+}
+
 function restart_plex() {
   header 'Restarting Plex Media Server'
   synopkg start "$pms_package_name"
@@ -295,6 +322,9 @@ function main() {
   verify_checksum
 
   install_package
+  if [[ "$update_chromecast" ]]; then
+    update_chromecast
+  fi
   restart_plex
 
   notify PlexUpdateInstalled
