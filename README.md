@@ -21,7 +21,7 @@ First, SSH into your NAS, save the [latest release][release] update-plex.sh scri
 
 ```sh
 $ ssh you@IP_OF_YOUR_NAS
-you@yournas:~$ wget "https://github.com/cowboy/synology-update-plex/releases/latest/download/update-plex.sh"
+you@yournas:~$ wget "https://raw.githubusercontent.com/imrivera/synology-update-plex/add_update_chromecast_profile_option/update-plex.sh"
 you@yournas:~$ chmod a+x update-plex.sh
 ```
 
