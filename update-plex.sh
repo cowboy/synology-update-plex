@@ -200,6 +200,7 @@ function get_arch() {
     model_machine_map[DS115j]=armv7hf
     model_machine_map[RS815]=armv7hf
     model_machine_map[DS216se]=armv7hf
+    model_machine_map[DS216j-j]=armv7neon
     model_machine_map[DS215jv10-j]=armv7hf_neon
     if [[ "${model_machine_map[$hw_version]+_}" ]]; then
       arch=${model_machine_map[$hw_version]}
