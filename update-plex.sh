@@ -23,7 +23,7 @@ function version() { echo "(in-development)"; } # value auto-generated during re
 
 function header() { echo -e "\n[ $@ ]"; }
 function warn() { echo "WARN: $@" >&2; }
-function fail() { echo "FAIL: $@"; exit 1; }
+function fail() { fail_reason="$@"; echo "FAIL: $@"; exit 1; }
 
 function process_args() {
   while [[ "${1-}" ]]; do
@@ -58,54 +58,28 @@ function cleanup() {
   if [[ $code == 0 ]]; then
     echo 'Done!'
   else
-    notify PlexUpdateError
+    notify_failure
     echo 'Done, with errors!'
   fi
 }
 
 function notify() {
-  synonotify $1 '{"%PLEX_VERSION%":"'${available_version:-(unknown)}'"}'
+  local json= tag_event=PkgMgr_$1
+  set -- PKG_NAME "Plex Media Server" "${@:2}"
+  while [[ "${1-}" ]]; do
+    [[ -n "$json" ]] && json="$json,"
+    json="$json\"%$1%\":\"${2//\"/\\\"}\""
+    shift 2
+  done
+  synonotify $tag_event "{$json}"
 }
 
-function init_notifications() {
-  local lang="$(source /etc/synoinfo.conf; echo "$maillang")"
-  local mails_file=/var/cache/texts/$lang/mails
-  if [[ ! -e "$mails_file" ]]; then
-    header "Initializing notification system"
-    echo "Notifications disabled (file $mails_file not found)"
-    return
-  fi
-  if [[ ! "$(grep PlexUpdateInstalled $mails_file || true)" ]]; then
-    header "Initializing notification system"
-    cp $mails_file $mails_file.bak
-    cat << 'EOF' >> $mails_file
+function notify_success() {
+  notify UpgradedPkg PKG_VERSION "${available_version:-(unknown)}"
+}
 
-[PlexUpdateInstalled]
-Subject: Successfully updated Plex to %PLEX_VERSION% on %HOSTNAME%
-
-Dear user,
-
-Successfully updated Plex to %PLEX_VERSION% on %HOSTNAME%
-
----
-https://github.com/cowboy/synology-update-plex
-
-
-[PlexUpdateError]
-Subject: Unable to update Plex to %PLEX_VERSION% on %HOSTNAME%
-
-Dear user,
-
-Unable to update Plex to %PLEX_VERSION% on %HOSTNAME%.
-
-If this error persists, enable saving output results in Task Scheduler and file an issue at https://github.com/cowboy/synology-update-plex/issues including the script output.
-
----
-https://github.com/cowboy/synology-update-plex
-
-EOF
-    echo 'Notifications installed'
-  fi
+function notify_failure() {
+  notify UpgradePkgFail FAILED_REASON "$fail_reason"
 }
 
 function retrieve_dsm_version() {
@@ -274,6 +248,8 @@ function main() {
 
   shopt -s nullglob
 
+  fail_reason=
+
   plex_pass=
   process_args "$@"
 
@@ -285,8 +261,6 @@ function main() {
   if [[ $EUID != 0 ]]; then
     fail 'This script must be run as root'
   fi
-
-  init_notifications
 
   retrieve_dsm_version
 
@@ -304,7 +278,7 @@ function main() {
   install_package
   restart_plex
 
-  notify PlexUpdateInstalled
+  notify_success
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
