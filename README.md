@@ -40,7 +40,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 
 - Be careful when SSHing into your NAS. I'm not responsible if you break anything!
 - This script may contain bugs. I'm not responsible if it breaks anything!
-- This script has been tested on a Synology DS918+ NAS. It should work with other Synology NAS models.
+- This script has been tested on a Synology DS918+ NAS running DSM 7. It should work with other Synology NAS models.
 - This script assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
 
 ## Common Issues
@@ -57,7 +57,7 @@ If you find a bug or an issue not listed here, please [file an issue][issue] or 
 Adapted from work first published at:
 - https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
 
-Inlcuding other update scripts such as:
+Including other update scripts such as:
 - https://github.com/martinorob/plexupdate
 - https://github.com/nitantsoni/plexupdate
 - https://gist.github.com/seanhamlin/dcde16a164377dca87a798a4c2ea051c
