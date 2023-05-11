@@ -182,10 +182,13 @@ function version_lte() {
 function check_up_to_date() {
   set_available_version
   set_installed_version
+  
+  local available_version_no_build=${available_version/%-*}
+  local installed_version_no_build=${installed_version/%-*}
 
   echo
-  if version_lte "$available_version" "$installed_version"; then
-    if [[ "$installed_version" != "$available_version" ]]; then
+  if version_lte "$available_version_no_build" "$installed_version_no_build"; then
+    if [[ "$installed_version_no_build" != "$available_version_no_build" ]]; then
       echo 'The installed version of Plex is newer than the available version. If' \
         'you have Plex Pass, be sure to run this script with the --plex-pass option.'
     fi
