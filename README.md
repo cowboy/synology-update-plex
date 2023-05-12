@@ -42,6 +42,7 @@ Then, create a Scheduled Task with a User-defined script in the Synology DSM Con
 - This script may contain bugs. I'm not responsible if it breaks anything!
 - This script has been tested on a Synology DS918+ NAS running DSM 7. It should work with other Synology NAS models.
 - This script assumes Plex was installed manually from https://www.plex.tv/media-server-downloads/.
+- This script sends "Plex Media Server" notifications as "Package Center" because it's simpler than doing it any other way.
 
 ## Common Issues
 
