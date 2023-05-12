@@ -77,7 +77,7 @@ setup() {
   run get_arch armv7 DS216play;       [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS216play-j;     [[ "$output" == "armv7hf_neon" ]]
   run get_arch armv7 DS216j;          [[ "$output" == "armv7hf_neon" ]]
-  run get_arch armv7 DS216j-j;        [[ "$output" == "armv7hf_neon" ]]
+  run get_arch armv7 DS216j-j;        [[ "$output" == "armv7l" ]]
   run get_arch armv7 DS216se;         [[ "$output" == "armv7hf" ]]
   run get_arch armv7 DS116;           [[ "$output" == "armv7hf_neon" ]]
 }
