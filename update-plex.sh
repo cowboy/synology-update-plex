@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+script_args=("$@")
+script_version='(in-development)' # auto-generated during release
+
 function help() { cat <<HELP
 Auto Update Plex Media Server on Synology NAS
-Version $(version)
+Version $script_version
 
 Download latest release from
-https://github.com/cowboy/synology-update-plex
+https://github.com/cowboy/synology-update-plex/releases
 
 Adapted from work first published at
 https://forums.plex.tv/t/script-to-auto-update-plex-on-synology-nas-rev4/479748
@@ -19,11 +22,9 @@ Options:
 HELP
 }
 
-function version() { echo "(in-development)"; } # value auto-generated during release
-
 function header() { echo -e "\n[ $@ ]"; }
 function warn() { echo "WARN: $@" >&2; }
-function fail() { echo "FAIL: $@"; exit 1; }
+function fail() { fail_reason="$@"; echo "FAIL: $@"; exit 1; }
 
 function process_args() {
   while [[ "${1-}" ]]; do
@@ -33,7 +34,7 @@ function process_args() {
         exit
         ;;
       -v|--version)
-        version
+        echo "$script_version"
         exit
         ;;
       --plex-pass)
@@ -47,65 +48,63 @@ function process_args() {
   done
 }
 
+function dump_vars() {
+  vars=(
+    script_args
+    script_version
+    plex_pass
+    pms_dir
+    dsm_major_version
+    available_version
+    installed_version
+    tmp_dir
+    package_file
+    debug_json
+  )
+  header 'Debugging info'
+  for var in "${vars[@]}"; do
+    (set -o posix ; set | grep ${var}= || true)
+  done
+  echo
+}
+
 function cleanup() {
   code=$?
-  if [[ -d "$tmp_dir" ]]; then
+  if [[ -d "${tmp_dir-}" ]]; then
     header 'Cleaning up'
     echo "Removing $tmp_dir"
     rm -rf $tmp_dir
   fi
-  echo
   if [[ $code == 0 ]]; then
+    echo
     echo 'Done!'
   else
-    notify PlexUpdateError
+    notify_failure
+    dump_vars
     echo 'Done, with errors!'
+    echo
+    echo 'If this problem persists, please file an issue here, and include the output from this script:'
+    echo 'https://github.com/cowboy/synology-update-plex/issues'
   fi
 }
 
 function notify() {
-  synonotify $1 '{"%PLEX_VERSION%":"'${available_version:-(unknown)}'"}'
+  local json= tag_event=PkgMgr_$1
+  set -- PKG_NAME "Plex Media Server" "${@:2}"
+  while [[ "${1-}" ]]; do
+    [[ -n "$json" ]] && json="$json,"
+    json="$json\"%$1%\":\"${2//\"/\\\"}\""
+    shift 2
+  done
+  synonotify $tag_event "{$json}"
 }
 
-function init_notifications() {
-  local lang="$(source /etc/synoinfo.conf; echo "$maillang")"
-  local mails_file=/var/cache/texts/$lang/mails
-  if [[ ! -e "$mails_file" ]]; then
-    header "Initializing notification system"
-    echo "Notifications disabled (file $mails_file not found)"
-    return
-  fi
-  if [[ ! "$(grep PlexUpdateInstalled $mails_file || true)" ]]; then
-    header "Initializing notification system"
-    cp $mails_file $mails_file.bak
-    cat << 'EOF' >> $mails_file
+function notify_success() {
+  notify UpgradedPkg PKG_VERSION "${available_version:-(unknown)}"
+}
 
-[PlexUpdateInstalled]
-Subject: Successfully updated Plex to %PLEX_VERSION% on %HOSTNAME%
-
-Dear user,
-
-Successfully updated Plex to %PLEX_VERSION% on %HOSTNAME%
-
----
-https://github.com/cowboy/synology-update-plex
-
-
-[PlexUpdateError]
-Subject: Unable to update Plex to %PLEX_VERSION% on %HOSTNAME%
-
-Dear user,
-
-Unable to update Plex to %PLEX_VERSION% on %HOSTNAME%.
-
-If this error persists, enable saving output results in Task Scheduler and file an issue at https://github.com/cowboy/synology-update-plex/issues including the script output.
-
----
-https://github.com/cowboy/synology-update-plex
-
-EOF
-    echo 'Notifications installed'
-  fi
+function notify_failure() {
+  notify UpgradePkgFail FAILED_REASON "${fail_reason-}"
 }
 
 function retrieve_dsm_version() {
@@ -125,13 +124,13 @@ function retrieve_dsm_version() {
 function build_downloads_url() {
   downloads_url='https://plex.tv/api/downloads/5.json'
 
-  if [[ "$plex_pass" ]]; then
+  if [[ "${plex_pass-}" ]]; then
     header "Enabling Plex Pass releases"
 
     if [ "$pms_package_name" = "PlexMediaServer" ]; then
-    	local pms_dir="$(echo "/var/packages/PlexMediaServer/home/Plex Media Server")"
+    	pms_dir='/var/packages/PlexMediaServer/home/Plex Media Server'
     else
-    	local pms_dir="$(echo /volume*"/Plex/Library/Application Support/Plex Media Server")"
+    	pms_dir="$(echo /volume*"/Plex/Library/Application Support/Plex Media Server")"
     fi
     if [[ ! -d "$pms_dir" ]]; then
       pms_dir="$(find /volume* -type d -name 'Plex Media Server' -execdir test -e "{}/Preferences.xml" \; -print -quit)"
@@ -166,6 +165,10 @@ function retrieve_version_data() {
 
 function set_available_version() {
   available_version=$(jq -r '.nas["'"$json_dsm_pattern"'"].version' <<< "$downloads_json")
+  if [[ "$available_version" == null ]]; then
+    debug_json="$downloads_json"
+    fail 'Unable to retrieve version data'
+  fi
   echo "Available version: $available_version"
 }
 
@@ -231,6 +234,7 @@ function find_release() {
   local arch=$(get_arch "$machine" "$hw_version")
   release_json="$(jq '.nas["'"$json_dsm_pattern"'"].releases[] | select(.build == "linux-'$arch'")' <<< "$downloads_json")"
   if [[ -z "$release_json" ]]; then
+    debug_json="$downloads_json"
     fail "Unable to find release for $hw_version/$machine/$arch"
   fi
 }
@@ -275,10 +279,8 @@ function main() {
 
   shopt -s nullglob
 
-  plex_pass=
   process_args "$@"
 
-  tmp_dir=
   trap cleanup EXIT
 
   echo 'Checking for a Plex Media Server update...'
@@ -286,8 +288,6 @@ function main() {
   if [[ $EUID != 0 ]]; then
     fail 'This script must be run as root'
   fi
-
-  init_notifications
 
   retrieve_dsm_version
 
@@ -305,7 +305,7 @@ function main() {
   install_package
   restart_plex
 
-  notify PlexUpdateInstalled
+  notify_success
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
