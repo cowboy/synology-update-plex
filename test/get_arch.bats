@@ -18,11 +18,9 @@ setup() {
 # If you're running into problems with the script trying to download the wrong
 # release file for your NAS, please note the output of the `uname -m` command
 # and the contents of the /proc/sys/kernel/syno_hw_version file and compare them
-# to the table below. If anything is missing or incorrect, please file an issue!
-#
-# Related issues:
-# https://github.com/cowboy/synology-update-plex/issues/11
-# https://github.com/cowboy/synology-update-plex/issues/19
+# to the table below. If anything is missing or incorrect, please file an issue
+# with your uname and syno_hw_version values or open a PR like this one:
+# https://github.com/cowboy/synology-update-plex/pull/44/files
 
 @test "get_arch :: should return the correct arch for the x18 series" {
   run get_arch armv7 RS3618xs;        [[ "$output" == "armv7hf_neon" ]]
