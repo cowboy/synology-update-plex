@@ -115,9 +115,9 @@ function retrieve_dsm_version() {
     pms_package_name="PlexMediaServer"
     echo "Found DSM version 7"
   else
-    json_dsm_pattern="Synology"
+    json_dsm_pattern="Synology (DSM 6)"
     pms_package_name="Plex Media Server"
-    echo "Found DSM version <6"
+    echo "Found DSM version 6"
   fi
 }
 
