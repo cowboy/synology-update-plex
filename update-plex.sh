@@ -55,6 +55,8 @@ function dump_vars() {
     plex_pass
     pms_dir
     dsm_major_version
+    dsm_minor_version
+    dsm_micro_version
     available_version
     installed_version
     tmp_dir
@@ -110,14 +112,23 @@ function notify_failure() {
 function retrieve_dsm_version() {
   header "Retrieving DSM version"
   dsm_major_version=$(awk -F "=" '/majorversion/ {print $2}' /etc.defaults/VERSION | tr -d '"')
-  if [[ "7" -eq "$dsm_major_version" ]]; then
-    json_dsm_pattern="Synology (DSM 7)"
-    pms_package_name="PlexMediaServer"
-    echo "Found DSM version 7"
+  dsm_minor_version=$(awk -F "=" '/minorversion/ {print $2}' /etc.defaults/VERSION | tr -d '"')
+  dsm_micro_version=$(awk -F "=" '/micro/ {print $2}' /etc.defaults/VERSION | tr -d '"')
+
+  if [[ "$dsm_major_version" -eq "7" ]]; then
+    if [[ "$dsm_minor_version" -eq "2" && "$dsm_micro_version" -ge "2" ]] || [[ "$dsm_minor_version" -gt "2" ]]; then
+      json_dsm_pattern="Synology (DSM 7.2.2+)"
+      pms_package_name="PlexMediaServer"
+      echo "Found DSM version 7.2.2+"
+    else
+      json_dsm_pattern="Synology (DSM 7)"
+      pms_package_name="PlexMediaServer"
+      echo "Found DSM version 7 (before 7.2.2)"
+    fi
   else
-    json_dsm_pattern="Synology"
+    json_dsm_pattern="Synology (DSM 6)"
     pms_package_name="Plex Media Server"
-    echo "Found DSM version <6"
+    echo "Found DSM version 6"
   fi
 }
 
